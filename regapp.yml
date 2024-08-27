@@ -1,0 +1,35 @@
+---
+- hosts: ansible
+  tasks:
+  - name: Create regapp image
+    command: docker build -t regapp:latest .
+    args:
+      chdir: /opt/docker
+  
+  tasks:
+  - name: Tag docker image
+    command: docker tag regapp:latest devops1868/regapp:latest
+
+  - name: Push image to dockerhub
+    command: docker push devops1868/regapp:latest
+  
+---
+- hosts: dockerhost
+  tasks:  
+  - name: Stop container
+    command: docker stop regapp-container
+    
+  - name: Remove container
+    command: docker rm -f regapp-container
+  
+  - name: Remove old image
+    command: docker rmi devops1868/regapp:latest
+    ignore_errors: yes
+
+  - name: Pull docker image
+    command: docker pull devops1868/regapp:latest
+  
+  - name: Create container
+    command: docker run -d --name regapp-container -p 8080:8080  devops1868/regapp:latest
+
+  
